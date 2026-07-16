@@ -1,2 +1,2 @@
-# mailnite-distr
+# mailnite-dist
 Mailnite Public Repository With Releases
