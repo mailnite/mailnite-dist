@@ -16,11 +16,11 @@ in about 30 minutes. You get:
 No mail relay, no ingress controller and no cert-manager are needed: the
 load balancer is the mail server's edge.
 
-> **One Azure fact before you start.** Azure blocks **outbound port 25** on
-> most subscription types (Enterprise Agreement and MCA-E are the
-> exceptions). Receiving mail works everywhere; to **send** to other servers
-> you configure a smarthost, a mail relay service on port 587. See
-> [step 8](#8-sending-mail-from-azure).
+> **One Azure fact before you start.** Outbound **port 25** may be blocked
+> on your subscription: free, pay-as-you-go and similar subscriptions can't
+> send on it, corporate ones (Enterprise Agreement, MCA-E) can. Receiving
+> works either way. If yours is blocked, you send through a smarthost, a
+> mail relay service on port 587. See [step 8](#8-sending-mail-from-azure).
 
 ---
 
@@ -276,10 +276,12 @@ openssl s_client -connect mail.$DOMAIN:443 -servername mail.$DOMAIN </dev/null 2
 
 ## 8. Sending mail from Azure
 
-Unless your subscription is Enterprise Agreement or MCA-E, Azure drops
-connections to port 25 on other servers, so delivery times out.
-**Infrastructure → Outbound → Test outbound SMTP** shows it. Send through a
-smarthost instead:
+Test first: **Infrastructure → Outbound → Test outbound SMTP** dials a real
+mail server from inside the pod. On an Enterprise Agreement or MCA-E
+subscription it usually succeeds, and you can send directly (see the end of
+this step). On free, pay-as-you-go and similar subscriptions Azure drops
+connections to port 25, the test times out, and you send through a
+smarthost:
 
 1. Sign up with a mail relay service (for example Azure Communication Services
    Email, SendGrid, Mailgun, Postmark or Amazon SES) and verify your domain
@@ -289,9 +291,8 @@ smarthost instead:
 3. Add the service to your SPF record, as its documentation shows
    (typically an `include:`).
 
-With an Enterprise Agreement or MCA-E subscription you can send directly
-instead. Mail then leaves from the cluster's outbound IP, not from `$IP`, so
-SPF must list that address.
+Sending directly (the test succeeded): mail leaves from the cluster's
+outbound IP, not from `$IP`, so your SPF record must list that address too.
 
 ---
 
@@ -436,7 +437,7 @@ kubectl -n mail create job --from=cronjob/mailnite-update retry
 | Pod stuck in `Init` | Read `kubectl -n mail logs mailnite-0 -c keys`. If the mail store exists but the `mailnite-keys` Secret is missing, the pod refuses to create a new key, which could never open that store. Restore your saved key: `kubectl -n mail create secret generic mailnite-keys --from-literal=MAIL_SMK='<saved key>'` |
 | No certificate is issued | `mail.<your-domain>` doesn't resolve to `$IP` yet, or it is proxied (Cloudflare's orange cloud). Fix DNS, then retry on the TLS page. |
 | Mail apps disconnect every few minutes | The idle-timeout annotation from step 4 is missing. |
-| Outgoing mail times out | Azure blocks port 25 on your subscription: see [step 8](#8-sending-mail-from-azure). |
+| Outgoing mail times out | Port 25 is blocked on your subscription: see [step 8](#8-sending-mail-from-azure). |
 | `localhost:8480` doesn't answer | The `kubectl port-forward` from step 6 must be running. |
 
 ---

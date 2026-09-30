@@ -18,10 +18,11 @@ is the mail server's edge. The guide uses a standard EKS cluster with the
 AWS Load Balancer Controller: EKS Auto Mode's load balancers can't take an
 Elastic IP, and MX records need an address that never changes.
 
-> **One AWS fact before you start.** AWS limits **outbound port 25** on EC2
-> until you ask for the limit to be removed. Receiving mail works; to
-> **send** to other servers you use Amazon SES as a smarthost on port 587.
-> See [step 9](#9-sending-mail-with-amazon-ses).
+> **One AWS fact before you start.** Outbound **port 25** is throttled on a
+> new AWS account until you ask AWS to lift the limit (a short form that
+> wants reverse DNS on an Elastic IP); corporate accounts often already have
+> it lifted. Receiving works either way. The simplest way to send is Amazon
+> SES as a smarthost on port 587. See [step 9](#9-sending-mail-with-amazon-ses).
 
 ---
 
@@ -341,11 +342,13 @@ pod that has just turned Ready.
 
 ## 9. Sending mail with Amazon SES
 
-Sending directly doesn't work well here. AWS limits port 25 until you ask,
-and the load balancer carries inbound traffic only: mail would leave from
-the node's address, not from `$IP`, and that address changes whenever the
-node is replaced. **Infrastructure → Outbound → Test outbound SMTP** shows
-the port 25 limit. Send through Amazon SES instead:
+Test first: **Infrastructure → Outbound → Test outbound SMTP** dials a real
+mail server from inside the pod. On a new account it times out until AWS
+lifts the port 25 limit; on an account where it is lifted it succeeds.
+Even then, sending directly is a poor fit here: the load balancer carries
+inbound traffic only, so mail leaves from the node's address, not from
+`$IP`, and that address changes whenever the node is replaced. Send through
+Amazon SES instead:
 
 1. In the **SES console** (same region), go to **Identities → Create
    identity → Domain**, enter your domain, and keep **Easy DKIM**. Publish

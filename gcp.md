@@ -16,10 +16,11 @@ server in about 30 minutes. You get:
 No mail relay, no ingress controller and no cert-manager are needed: the
 load balancer is the mail server's edge.
 
-> **One Google Cloud fact before you start.** Google Cloud blocks **outbound
-> port 25** to the internet, for all but a few exempt projects. Receiving
-> mail works; to **send** to other servers you configure a smarthost, a mail
-> relay service on port 587. See [step 8](#8-sending-mail-from-google-cloud).
+> **One Google Cloud fact before you start.** Outbound **port 25** may be
+> blocked on your project: most projects can't send on it, some established
+> ones are exempt (Google decides which; ask about yours). Receiving works
+> either way. If yours is blocked, you send through a smarthost, a mail relay
+> service on port 587. See [step 8](#8-sending-mail-from-google-cloud).
 
 ---
 
@@ -269,9 +270,12 @@ openssl s_client -connect mail.$DOMAIN:443 -servername mail.$DOMAIN </dev/null 2
 
 ## 8. Sending mail from Google Cloud
 
-Google Cloud drops connections to port 25 on other servers, so delivery
-times out. **Infrastructure → Outbound → Test outbound SMTP** shows it.
-Ports 587 and 465 are open, so send through a smarthost instead:
+Test first: **Infrastructure → Outbound → Test outbound SMTP** dials a real
+mail server from inside the pod. If your project is one of the exempt ones
+the test succeeds and you can send directly (mail then leaves from the
+node's address, not from `$IP`, so your SPF record must list it too). For
+most projects Google Cloud drops connections to port 25 and the test times
+out; ports 587 and 465 are always open, so you send through a smarthost:
 
 1. Sign up with a mail relay service and verify your domain there. Google
    suggests SendGrid, Mailgun and Mailjet; Amazon SES and Postmark work too.
@@ -424,7 +428,7 @@ kubectl -n mail create job --from=cronjob/mailnite-update retry
 | Ports 25/443 time out right after install | The pod isn't Ready yet: finish the wizard's first phase. `kubectl -n mail get pods` must show `1/1`. |
 | Pod stuck in `Init` | Read `kubectl -n mail logs mailnite-0 -c keys`. If the mail store exists but the `mailnite-keys` Secret is missing, the pod refuses to create a new key, which could never open that store. Restore your saved key: `kubectl -n mail create secret generic mailnite-keys --from-literal=MAIL_SMK='<saved key>'` |
 | No certificate is issued | `mail.<your-domain>` doesn't resolve to `$IP` yet, or it is proxied (Cloudflare's orange cloud). Fix DNS, then retry on the TLS page. |
-| Outgoing mail times out | Google Cloud blocks port 25: see [step 8](#8-sending-mail-from-google-cloud). |
+| Outgoing mail times out | Port 25 is blocked on your project: see [step 8](#8-sending-mail-from-google-cloud). |
 | kubectl: `gke-gcloud-auth-plugin` not found | Install the plugin (see [Before you start](#before-you-start)), then run `get-credentials` again. |
 | `localhost:8480` doesn't answer | The `kubectl port-forward` from step 6 must be running. |
 
