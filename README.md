@@ -43,6 +43,28 @@ tar xzf mailnite_linux_amd64.tar.gz
 ./mailnite run                             # http://localhost:8480 — the wizard takes over
 ```
 
+## Kubernetes
+
+A Helm chart runs Mailnite on any cluster. The mail edge can be a cloud load
+balancer (GKE, AKS, EKS), router port-forwards, or a mail relay when the
+cluster sits behind Cloudflare or NAT:
+
+```bash
+helm install mailnite oci://ghcr.io/mailnite/charts/mailnite -n mail --create-namespace \
+  --set domain=example.com --set exposure=loadBalancer
+```
+
+Step-by-step guides:
+
+| Where | Guide |
+|---|---|
+| Azure Kubernetes Service | **[azure.md](azure.md)** |
+| Google Kubernetes Engine | **[gcp.md](gcp.md)** |
+| Amazon EKS | **[aws.md](aws.md)** |
+| Your own cluster with a Gateway (behind Cloudflare or NAT, home lab, router) | **[kubernetes.md](kubernetes.md)** |
+
+All options: [mailnite-chart](https://github.com/mailnite/mailnite-chart).
+
 ## What's in the box
 
 - **Mail core** — SMTP + submission, IMAP, POP3, DKIM signing (per-domain, multi-domain sending), SPF/DKIM/DMARC verification, RFC-compliant DSN bounces, TLS-RPT reporting both ways, automatic TLS.
