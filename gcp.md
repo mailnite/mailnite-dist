@@ -430,6 +430,7 @@ kubectl -n mail create job --from=cronjob/mailnite-update retry
 | No certificate is issued | `mail.<your-domain>` doesn't resolve to `$IP` yet, or it is proxied (Cloudflare's orange cloud). Fix DNS, then retry on the TLS page. |
 | Outgoing mail times out | Port 25 is blocked on your project: see [step 8](#8-sending-mail-from-google-cloud). |
 | kubectl: `gke-gcloud-auth-plugin` not found | Install the plugin (see [Before you start](#before-you-start)), then run `get-credentials` again. |
+| `helm upgrade` fails with *conflicts with "Go-http-client"* (or *"mailnite-k8s"*) on the image fields | Helm 4 applies server-side, and the hourly updater had written the image before. Run the upgrade once with `--force-conflicts`. From Mailnite 1.5.2 the updater hands the fields back to Helm after every run, so it does not recur. |
 | `localhost:8480` doesn't answer | The `kubectl port-forward` from step 6 must be running. |
 
 ---

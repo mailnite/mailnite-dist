@@ -473,6 +473,7 @@ the pool>`. From there the steps match the cloud guides (for example
 | No certificate is issued | `mail.<your-domain>` is proxied (Cloudflare's orange cloud) or points elsewhere, or ports 80 and 443 are closed on the VDS. |
 | Outgoing mail times out | The VDS provider blocks port 25: ask them to lift it, or set a smarthost in **Infrastructure → Outbound**. |
 | Pod stuck in `Init` | Read `kubectl -n $NS logs mailnite-0 -c keys`. If the mail store exists but the `mailnite-keys` Secret is missing, the pod refuses to create a new key, which could never open that store. Restore your saved key: `kubectl -n $NS create secret generic mailnite-keys --from-literal=MAIL_SMK='<saved key>'` |
+| `helm upgrade` fails with *conflicts with "Go-http-client"* (or *"mailnite-k8s"*) on the image fields | Helm 4 applies server-side, and the hourly updater had written the image before. Run the upgrade once with `--force-conflicts`. From Mailnite 1.5.2 the updater hands the fields back to Helm after every run, so it does not recur. |
 | `localhost:8480` doesn't answer | The `kubectl port-forward` from step 5 must be running. |
 
 ---

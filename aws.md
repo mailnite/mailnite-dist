@@ -511,6 +511,7 @@ kubectl -n mail create job --from=cronjob/mailnite-update retry
 | No certificate is issued | `mail.<your-domain>` doesn't resolve to `$IP` yet, or it is proxied (Cloudflare's orange cloud). Fix DNS, then retry on the TLS page. |
 | Mail apps disconnect every few minutes | The idle-timeout annotations from step 5 are missing. |
 | Outgoing mail times out | Port 25 is limited: see [step 9](#9-sending-mail-with-amazon-ses). |
+| `helm upgrade` fails with *conflicts with "Go-http-client"* (or *"mailnite-k8s"*) on the image fields | Helm 4 applies server-side, and the hourly updater had written the image before. Run the upgrade once with `--force-conflicts`. From Mailnite 1.5.2 the updater hands the fields back to Helm after every run, so it does not recur. |
 | `localhost:8480` doesn't answer | The `kubectl port-forward` from step 7 must be running. |
 
 ---
