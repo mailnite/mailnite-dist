@@ -26,6 +26,8 @@ Hosting at home behind NAT? Install the **relay** on any cheap VDS with a public
 curl -fsSL https://get.mailnite.com/relay | sudo bash -s -- --token <KEY>
 ```
 
+Or let the console make and keep the relay's machine for you at Google Cloud, AWS or Azure — a reserved address that outlives the machine, a Spot machine under it, automatic recovery when the cloud takes it: **[cloud-relay.md](cloud-relay.md)**.
+
 Update either one at any moment (both also self-update hourly on their own):
 
 ```bash
