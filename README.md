@@ -102,6 +102,13 @@ sha256sum -c SHA256SUMS --ignore-missing     # linux
 shasum -a 256 -c SHA256SUMS 2>/dev/null      # macos
 ```
 
+The macOS and Windows binaries are code-signed by Karagatan LLC — a Developer ID signature notarized by Apple, an Authenticode signature on the exe:
+
+```bash
+codesign --verify --strict --verbose=2 mailnite && spctl --assess --type execute -vv mailnite   # macos: "accepted … Notarized Developer ID"
+osslsigncode verify -in mailnite.exe                                                           # windows, or Properties → Digital Signatures
+```
+
 ---
 
 [mailnite.com](https://mailnite.com) · [get.mailnite.com](https://get.mailnite.com) · [Releases](../../releases)
